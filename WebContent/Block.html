@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Block</title>
+</head>
+<style type="text/css">
+  canvas {
+    border: 3px solid #999;
+  }
+
+  .scr {
+    overflow: auto;
+    /* スクロール表示 */
+  }
+
+  input#msg {
+    border: 0;
+    padding: 10px;
+    font-size: 1.3em;
+    font-family: Arial, sans-serif;
+    border: solid 1px #ccc;
+    margin: 0 0 20px;
+    width: 300px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    -moz-box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.2);
+    -webkit-box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.2);
+    box-shadow: inner 0 0 4px rgba(0, 0, 0, 0.2);
+  }
+
+  span.name {
+    font-weight: bolder;
+  }
+
+  .scr::-webkit-scrollbar {
+    height: 10px;
+  }
+  /*バーの太さ*/
+
+  .scr::-webkit-scrollbar-track {
+    background: #dddddd;
+  }
+  /*バーの背景色*/
+
+  .scr::-webkit-scrollbar-thumb {
+    background: #2cc2e4;
+  }
+  /*バーの色*/
+
+  div {
+    line-height: 140%;
+    font-size: 110%;
+  }
+</style>
+
+<body>
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>
+    var Myname;
+    var nameColor = {};
+
+    function colorGen() {
+      return '#' + Math.floor(Math.random() * 16777215).toString(16);
+    }
+
+    function goBottom(element) {
+      var obj = element;
+      if (!obj) return;
+      obj.scrollTop = obj.scrollHeight;
+    }
+
+    function printMessage(msg) {
+      var msgbox = document.getElementById('msgbox');
+      var array = msg.split(",");
+      if (array[0] == "Guest") {
+        msgbox.innerHTML += "<div>" + array[0] + array[1] + "</div>";
+      } else {
+        if (nameColor[array[0]] === void 0) {
+          nameColor[array[0]] = colorGen();
+        }
+        msgbox.innerHTML += "<div>" + "<span class = 'name' style='color:" + nameColor[array[0]] + ";'>" + array[0] + "</span>" + array[1] + "</div>";
+      }
+      goBottom(msgbox);
+    }
+    var ws = new WebSocket("ws://" + location.host + "/WebService/wsblock");
+    ws.onmessage = function(event) {
+      printMessage(event.data);
+    };
+
+    function connect2() {
+      if (document.getElementById('msg').value != null && document.getElementById('msg').value != "" && Myname == null) {
+        Myname = document.getElementById("msg").value;
+        document.getElementById("connect").disabled = true;
+        document.getElementById("send").disabled = false;
+      } else {
+        alert("入力されていません");
+      }
+    }
+
+    function send2() {
+      var msg = document.getElementById("msg").value;
+      if (msg == null || msg == "") {
+        alert("入力されていません");
+      } else {
+        ws.send(Myname + ", : " + msg);
+      }
+    }
+
+    $(function() {
+      var x;
+      var y;
+      var dx;
+      var dy;
+      var WIDTH;
+      var HEIGHT;
+      var ctx;
+      var box;
+
+      var paddlex;
+      var paddleh;
+      var paddlew;
+
+      var canvasMinX;
+      var canvasMaxX;
+
+      var bricks;
+      var NROWS;
+      var NCOLS;
+      var BRICKWIDTH;
+      var BRICKHEIGHT;
+      var PADDING;
+      var kosuu;
+
+      var ballr = 10;
+      var rowcolors = ['#1b998b', '#2d3047', '#fffd82', '#ff9b71', '#e84855'];
+      var paddlecolor = '#e94f37';
+      var ballcolor = '#e94f37';
+      var backcolor = 'rgb(80, 80, 80)';
+
+      var startTime;
+      var endTime;
+
+      function init() {
+        if (Myname === void 0) {
+          ws.send("Guest, [Game Start]");
+        } else {
+          ws.send(Myname + ", [Game Start]");
+        }
+        startTime = new Date();
+        var canvas = $("#canvas")[0];
+        ctx = canvas.getContext("2d");
+        WIDTH = $("#canvas").width();
+        HEIGHT = $("#canvas").height();
+        box = setInterval(draw, 8);
+        x = 150;
+        y = 150;
+        dx = 2;
+        dy = 5;
+        return box;
+      }
+
+      function circle(x, y, r) {
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2, true);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      function rect(x, y, w, h) {
+        ctx.beginPath();
+        ctx.rect(x, y, w, h);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      function clear() {
+        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+      }
+
+      function init_paddle() {
+        paddlex = WIDTH / 2;
+        paddleh = 12;
+        paddlew = 110;
+      }
+
+      rightDown = false;
+      leftDown = false;
+
+      function onKeyDown(evt) {
+        if (evt.keyCode == 39) rightDown = true;
+        else if (evt.keyCode == 37) leftDown = true;
+      }
+
+      function onKeyUp(evt) {
+        if (evt.keyCode == 39) rightDown = false;
+        else if (evt.keyCode == 37) leftDown = false;
+      }
+
+      $(document).keydown(onKeyDown);
+      $(document).keyup(onKeyUp);
+
+      function init_mouse() {
+        canvasMinX = $("#canvas").offset().left;
+        canvasMaxX = canvasMinX + WIDTH;
+      }
+
+      function onMouseMove(evt) {
+        if (evt.pageX > canvasMinX && evt.pageX < canvasMaxX) {
+          paddlex = evt.pageX - canvasMinX;
+        }
+      }
+
+      $(document).mousemove(onMouseMove);
+
+      function initbricks() {
+        NROWS = 5;
+        NCOLS = 5;
+        BRICKWIDTH = (WIDTH / NCOLS) - 1;
+        BRICKHEIGHT = 20;
+        PADDING = 1;
+        kosuu = NROWS * NCOLS;
+
+        bricks = new Array(NROWS);
+        for (i = 0; i < NROWS; i++) {
+          bricks[i] = new Array(NCOLS);
+          for (j = 0; j < NCOLS; j++) {
+            bricks[i][j] = 1;
+          }
+        }
+      }
+
+      function draw() {
+        ctx.fillStyle = backcolor;
+        clear();
+        ctx.fillStyle = ballcolor;
+        circle(x, y, ballr);
+        if (kosuu == 0) {
+          clearInterval(box);
+          ctx.font = 'bold 60px Century Gothic';
+          ctx.strokeStyle = '#00A3D9';
+          ctx.lineWidth = 6;
+          ctx.lineJoin = 'round';
+          ctx.fillStyle = '#fff';
+          ctx.strokeText('Game Clear', 70, 260, 520);
+          ctx.fillText('Game Clear', 70, 260);
+          endTime = new Date();
+          if (Myname === void 0) {
+            ws.send("Guest, [Game Clear]　" + (endTime - startTime) / 1000 + "秒");
+          } else {
+            ws.send(Myname + ", [Game Clear]　" + (endTime - startTime) / 1000 + "秒");
+          }
+        }
+
+        if (rightDown) paddlex += 5;
+        else if (leftDown) paddlex -= 5;
+        ctx.fillStyle = paddlecolor;
+        rect(paddlex, HEIGHT - paddleh, paddlew, paddleh);
+
+        for (i = 0; i < NROWS; i++) {
+          for (j = 0; j < NCOLS; j++) {
+            if (bricks[i][j] == 1) {
+              ctx.fillStyle = rowcolors[i];
+              rect((j * (BRICKWIDTH + PADDING)) + PADDING,
+                (i * (BRICKHEIGHT + PADDING)) + PADDING,
+                BRICKWIDTH, BRICKHEIGHT);
+            }
+          }
+        }
+
+        rowheight = BRICKHEIGHT + PADDING;
+        colwidth = BRICKWIDTH + PADDING;
+        row = Math.floor(y / rowheight);
+        col = Math.floor(x / colwidth);
+        if (y < NROWS * rowheight && row >= 0 && col >= 0 && bricks[row][col] == 1) {
+          dy = -dy;
+          bricks[row][col] = 0;
+          kosuu--;
+        }
+        if (x + dx + ballr > WIDTH || x + dx - ballr < 0)
+          dx = -dx;
+        if (y + dy - ballr < 0)
+          dy = -dy;
+        else if (y + dy + ballr > HEIGHT - paddleh + 1) {
+          if (x > paddlex && x < paddlex + paddlew) {
+            dx = 8 * ((x - (paddlex + paddlew / 2)) / paddlew);
+            dy = -dy;
+          } else if (y + dy + ballr > HEIGHT) {
+            clearInterval(box);
+            ctx.font = 'bold 60px Century Gothic';
+            ctx.strokeStyle = '#00A3D9';
+            ctx.lineWidth = 6;
+            ctx.lineJoin = 'round';
+            ctx.fillStyle = '#fff';
+            ctx.strokeText('Game Over', 75, 260, 520);
+            ctx.fillText('Game Over', 75, 260);
+            endTime = new Date();
+            if (Myname === void 0) {
+              ws.send("Guest, [Game Over] " + (endTime - startTime) / 1000 + "秒");
+            } else {
+              ws.send(Myname + ", [Game Over] " + (endTime - startTime) / 1000 + "秒");
+            }
+          }
+        }
+        x += dx;
+        y += dy;
+      }
+      $("#runButton").on('click', function() {
+        clearInterval(box);
+        init();
+        init_paddle();
+        init_mouse();
+        initbricks();
+      });
+    });
+  </script>
+  <canvas id="canvas" width="500" height="500" style="position: absolute; left: 500px; top: 26px;"></canvas>
+  <button type="submit" value="run code" style="position: absolute; left: 737px; top: 536px;" id="runButton">reset</button>
+  <input type="text" id="msg" size="20">
+  <input type="button" id="connect" value="Connect" onclick="connect2();">
+  <input type="button" id="send" value="Send" onclick="send2();" disabled>
+  <div class="scr" id="msgbox" style="border-style: solid; width: 400px; height: 400px;"></div>
+</body>
+
+</html>

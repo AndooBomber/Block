@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>WebRTCtest1</title>
+</head>
+<script type="text/javascript">
+var localvideo = document.getElementById('local_video');
+var localStream;
+function startvideo() {
+  navigator.mediaDevices.getUserMedia({video: true,audio: false}).then(function (stream){
+    localStream = stream;
+    localvideo.src = window.URL.createObjectURL(localStream);
+  }).catch(function (error) {
+  console.error('mediaDevice.getUserMedia() error:',error);
+  return;
+});
+}
+
+function stopvideo() {
+  for (track of localStream.getTracks()) {
+    track.stop();
+  }
+  localStream = null;
+
+  localvideo.pause();
+  window.URL.revokeObjectURL(localvideo.src);
+  localvideo.src = '';
+}
+</script>
+<body>
+  Camera with mediaDevice.getUserMedia()<br>
+  <button type="button" name="start" onclick="startvideo()">Start</button>
+  <button type="button" name="stop" onclick="stopvideo()">Stop</button>
+  <br>
+<video id="local_video" autoplay style="width: 320px;height: 240px; border: 1px solid black;"></video>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>WebSocketDemo Client</title>
+        <meta charset="UTF-8">
+    </head>
+    <style type="text/css">
+.scr {
+  overflow: scroll;   /* スクロール表示 */ 
+}
+</style>
+    <body>
+        <script type="text/javascript">
+                var Myname;
+                function printMessage(msg) {
+                	var msgbox = document.getElementById('msgbox');
+                	msgbox.innerHTML += "<div>" + msg + "</div>";
+                }
+                var ws = new WebSocket("ws://"+location.host+"/WebService/wsdemo");
+                ws.onmessage = function(event) {
+                    printMessage(event.data);
+                };
+                function connect2() {
+                    if (document.getElementById('msg').value != null  && document.getElementById('msg').value != "" && Myname == null){
+                    	Myname = document.getElementById("msg").value;
+                        document.getElementById("connect").disabled = true;
+                        document.getElementById("send").disabled = false;
+                    }else{
+                    	alert("入力されていません");
+                    }
+                }
+                function send2() {
+                    var msg = document.getElementById("msg").value;
+                    if(msg == null || msg == ""){
+                        alert("入力されていません");
+                    }else{
+                        ws.send(Myname + " : " +msg);
+                    }
+                }
+        </script>
+        <form action="javascript:void(0);">
+            <input type="text" id="msg" size="20"> 
+            <input type="button" id="connect" value="Connect" onclick="connect2();">
+            <input type="button" id="send" value="Send" onclick="send2();" disabled>
+        </form>
+        <div class="scr" id="msgbox" style="border-style: solid;width: 500px;height: 400px"></div>
+    </body>
+</html>

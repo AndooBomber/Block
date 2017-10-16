@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<script type="text/javascript"
+		src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>
+var ws = new WebSocket("ws://"+location.host+"/WebService/project");
+ws.onmessage = function(event) {
+    printMessage(event.data);
+};
+function send(){
+	
+}
+</script>
+</body>
+</html>
